@@ -22,6 +22,7 @@ export default function Register() {
 
     try {
       const response = await axios.post('/api/auth/register', formData);
+
       if (response.status === 201) {
         alert("User registered successfully");
       } else {
@@ -80,3 +81,10 @@ export default function Register() {
     </div>
   )
 }
+
+
+// {
+//   "username" : "Maya",
+//   "email" : "maya123@gmail.com",
+//   "password" : "maya123"
+// }
