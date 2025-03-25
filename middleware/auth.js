@@ -30,21 +30,34 @@ const generateRefreshToken = (user) => {
 }
 
 //Verify Access Token
-const verifyAccessToken = (token) => {
+const verifyAccessToken = (req, res, next) => {
+   const token = req.cookies.accessToken || req.headers.authorization.split(" ")[1];
+   if(!token)
+    return res.status(401).json("You are not authenticated");
+
     try {
-        return jwt.verify(token, JWT_SECRET);
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.user = decoded;
+        next();
     } catch (error) {
-        return null;
+        return res.status(403).json("Token is not valid");
     }
+   
 }
 
 
 //Verify refresh Token
-const verifyRefreshToken = (token) => {
+const verifyRefreshToken = (req, res, next) => {
+    const token = req.cookies.refreshToken || req.headers.authorization.split(" ")[1];
+   if(!token)
+    return res.status(401).json("You are not authenticated");
+
     try {
-        return jwt.verify(token, JWT_REFRESH_SECRET);
+        const decoded = jwt.verify(token, JWT_REFRESH_SECRET);
+        req.user = decoded;
+        next();
     } catch (error) {
-        return null;
+        return res.status(403).json("Token is not valid");
     }
 }
 
