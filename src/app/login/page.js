@@ -1,5 +1,8 @@
 "use client";
+
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
+
 import React, { useState } from 'react'
 
 export default function page() {
@@ -7,6 +10,8 @@ export default function page() {
         email: "",
         password: ""
     })
+
+    const router = useRouter();
 
     const handleChange = (e) => {
         setFormData({
@@ -30,8 +35,10 @@ export default function page() {
                 console.log(response.data);
 
                 // Store tokens in local storage
-            localStorage.setItem("accessToken", response.data.accessToken);
-            localStorage.setItem("refreshToken", response.data.refreshToken);
+                localStorage.setItem("accessToken", response.data.accessToken);
+                localStorage.setItem("refreshToken", response.data.refreshToken);
+
+                router.push("/profile");
             }
             else {
                 alert(response.data.error || "Login failed");

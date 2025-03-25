@@ -38,8 +38,8 @@ export async function POST(req) {
 
         //Set cookies for authetication
         const headers = new Headers();
-        headers.append("Set-Cookie", `accessToken= ${accessToken}; HttpOnly; Path=/; Secure; SameSite=Strict`);
-        headers.append("Set-Cookie", `refreshToken = ${refreshToken}; HttpOnly; Path=/; Secure; SameSite=Strict`);
+        headers.append("Set-Cookie", `accessToken=${accessToken}; HttpOnly; Path=/; Secure; SameSite=Strict`);
+        headers.append("Set-Cookie", `refreshToken=${refreshToken}; HttpOnly; Path=/; Secure; SameSite=Strict`);
         headers.append("Content-Type", "application/json");
 
         return new Response(JSON.stringify({message: "Login Successful",accessToken, refreshToken}), {

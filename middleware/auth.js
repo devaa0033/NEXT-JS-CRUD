@@ -9,10 +9,11 @@ const JWT_REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET;
 const generateAccessToken = (user) => {
     const payload = {
         id: user.id,
-        email: user.email
+        username: user.Full_Name,
+        email: user.Email_Address
     };
     const token = jwt.sign(payload, JWT_SECRET, {
-        expiresIn: '2d'
+        expiresIn: '5d'
     })
      return token
 }
@@ -30,35 +31,53 @@ const generateRefreshToken = (user) => {
 }
 
 //Verify Access Token
-const verifyAccessToken = (req, res, next) => {
-   const token = req.cookies.accessToken || req.headers.authorization.split(" ")[1];
-   if(!token)
-    return res.status(401).json("You are not authenticated");
+const verifyAccessToken = (req) => {
+    console.log("Cookies:", req.cookies);
+    console.log("Headers:", req.headers);
+
+    const authHeader = req.headers.get("Authorization");
+
+    console.log("Authorization Header:", authHeader);
+
+    const token = authHeader?.split(" ")[1] || req.cookies?.accessToken;
+
+    console.log("Extracted Token:", token);
+
+    if (!token) {
+        console.log("No token provided");
+        return new Response("You are not authenticated", { status: 401 });
+    }
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded;
-        next();
+        console.log("Decoded User:", decoded);
+        return decoded;
     } catch (error) {
-        return res.status(403).json("Token is not valid");
+        console.log("Token verification failed:", error.message);
+        return new Response("Token is not valid", { status: 403 });
     }
-   
-}
+};
+
+
+
+
 
 
 //Verify refresh Token
-const verifyRefreshToken = (req, res, next) => {
-    const token = req.cookies.refreshToken || req.headers.authorization.split(" ")[1];
-   if(!token)
-    return res.status(401).json("You are not authenticated");
+const verifyRefreshToken = (req) => {
+    const authHeader = req.headers.get("Authorization");
+    const token = authHeader?.split(" ")[1] || req.cookies?.accessToken;
+
+    if (!token) {
+        return new Response("You are not authenticated", { status: 401 });
+    }
 
     try {
-        const decoded = jwt.verify(token, JWT_REFRESH_SECRET);
-        req.user = decoded;
-        next();
+        return jwt.verify(token, JWT_REFRESH_SECRET);
     } catch (error) {
-        return res.status(403).json("Token is not valid");
+        return new Response("Token is not valid", { status: 403 });
     }
-}
+};
+
 
 export {generateAccessToken, generateRefreshToken, verifyAccessToken, verifyRefreshToken}
