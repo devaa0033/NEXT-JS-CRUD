@@ -17,7 +17,15 @@ export default function page() {
         email: "",
         password: ""
     })
+
     const router = useRouter();
+
+
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const toggleDropdown = () => {
+        setIsDropdownOpen(!isDropdownOpen);
+    };
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -55,7 +63,7 @@ export default function page() {
         setUpdatedData({
             username: userData.Full_Name || "",
             email: userData.Email_Address || "",
-            password: userData.Create_password || ""
+            password: ""
         });
         setIsOpen(true);
     };
@@ -63,12 +71,16 @@ export default function page() {
     const handleUpdate = async () => {
         try {
             const token = localStorage.getItem('accessToken');
-            const res = await axios.put('/api/auth/profile', {
+            const updatedFields = {
                 Full_Name: updatedData.username,
                 Email_Address: updatedData.email,
-                Create_password: updatedData.password
-                }, 
-                {
+            }
+
+            if(updatedData.password){
+                updatedFields.Created_password = updatedData.password;
+            }
+
+            const res = await axios.put('/api/auth/profile',updatedFields, {
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
@@ -83,9 +95,63 @@ export default function page() {
         }
     }
 
+    const handleDeleteAccount = async () => {
+        if(!confirm("Are you sure you want to delete your account? This action is irreversible." )){
+            return ;
+        }
+
+        try {
+            const token = localStorage.getItem("accessToken");
+            const res = await axios.delete("/api/users", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if(res.status === 200){
+                alert("Account deleted successfully");
+                localStorage.removeItem("accessToken");
+                localStorage.removeItem("refreshToken");
+                router.push("/register");
+            }
+        } catch (error) {
+            console.error("Error deleting account : ", error);
+            alert("Failed to delete account.");
+        }
+    };
+
   return ( 
         <div className="flex justify-center items-center min-h-screen bg-gray-100">
         <div className="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+
+            <div className="flex justify-end px-4 pt-4">
+                <button
+                    onClick={toggleDropdown}
+                    className="inline-block text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-1.5"
+                    type="button">
+                    <span className="sr-only">Open dropdown</span>
+                    <svg
+                        className="w-5 h-5"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="currentColor"
+                        viewBox="0 0 16 3" >
+                        <path d="M2 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6.041 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM14 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z" />
+                    </svg>
+                </button>
+                {isDropdownOpen && (
+                <div className="absolute z-10 top-85 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow-md w-44 dark:bg-gray-700">
+                    <ul className="py-2">
+                        <li>
+                            <button className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white" onClick={handleDeleteAccount}>
+                                Delete Account
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            )}
+            </div>
+            
             <div className="flex flex-col items-center pb-10">
                 <img className="w-24 h-24 mb-3 rounded-full shadow-lg" src="https://www.shutterstock.com/image-vector/user-profile-icon-vector-avatar-600nw-2220431045.jpg" alt=""/>
                 {userData ? (
