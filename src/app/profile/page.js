@@ -6,7 +6,17 @@ import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react'
 
 export default function page() {
-    const [userData, setUserData] = useState([]);
+    const [userData, setUserData] = useState({
+        username: "",
+        email: "",
+        password: ""
+    });
+    const [isOpen, setIsOpen] = useState(false);
+    const [updatedData, setUpdatedData] = useState({
+        username: "",
+        email: "",
+        password: ""
+    })
     const router = useRouter();
 
     useEffect(() => {
@@ -18,7 +28,9 @@ export default function page() {
                         Authorization: `Bearer ${token}`
                     }
                 });
+               if(response.data){
                 setUserData(response.data);
+               }
             } catch (error) {
                 console.log("Error fetching user data:", error)
             }
@@ -38,6 +50,39 @@ export default function page() {
         }
     }
 
+
+    const handleEdit = () => {
+        setUpdatedData({
+            username: userData.Full_Name || "",
+            email: userData.Email_Address || "",
+            password: userData.Create_password || ""
+        });
+        setIsOpen(true);
+    };
+
+    const handleUpdate = async () => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            const res = await axios.put('/api/auth/profile', {
+                Full_Name: updatedData.username,
+                Email_Address: updatedData.email,
+                Create_password: updatedData.password
+                }, 
+                {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+            if(res.status === 200){
+                setUserData(res.data);
+                setIsOpen(false);
+            }
+        } catch (error) {
+            console.log("Error updating user data:", error);
+        }
+    }
+
   return ( 
         <div className="flex justify-center items-center min-h-screen bg-gray-100">
         <div className="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
@@ -50,7 +95,7 @@ export default function page() {
                 <div className="flex mt-4 md:mt-6">
                     <button className="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={handleLogout}>Logout</button>
                 
-                    <a href="#" className="py-2 px-4 ms-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Update</a>
+                    <button onClick={handleEdit} className="py-2 px-4 ms-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">Update</button>
                 </div>
             </>
              )  :   (
@@ -58,6 +103,40 @@ export default function page() {
                 )}
             </div>
         </div>
-        </div>
+
+
+
+
+
+       { /*Modal*/}
+
+       {isOpen && (
+        <div className='fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50'>
+            <div className='bg-white p-6 rounded-lg shadow-lg w-96'>
+                <h2 className='text-xl font-bold mb-4'>Edit Profile</h2>
+
+                <input type="text" name="username" value={updatedData.username || ""} onChange={(e) => setUpdatedData({...updatedData, username: e.target.value})} placeholder='New Username' className='w-full p-2 border rounded mb-3' />
+
+                <input type="email" name="email" value={updatedData.email || ""} onChange={(e) => setUpdatedData({...updatedData, email: e.target.value})} placeholder='New Email' className='w-full p-2 border rounded mb-3' />
+
+                <input type="password" name="password" value={updatedData.password || ""} onChange={(e) => setUpdatedData({...updatedData, password: e.target.value})} placeholder='New Password' className='w-full p-2 border rounded mb-3' />
+
+                <div className="flex justify-end">
+                    <button className='px-4 py-2 mr-2 bg-gray-300 rounded' onClick={() => setIsOpen(false)}>Cancel</button>
+                    <button className='px-4 py-2 bg-blue-600 text-white rounded' onClick={handleUpdate}>Update</button>
+                </div>
+
+            </div>
+       </div>
+    ) }
+
+ </div>
   )
 }
+
+
+// {
+//   "username" : "Sarah",
+//   "email" : "sarah123@gmail.com", -> sarah456@gmail.com
+//   "password" : "sarah123" -> sarah456
+// }

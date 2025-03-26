@@ -1,6 +1,7 @@
 "use client";
 
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react'
 
 export default function Register() {
@@ -9,6 +10,8 @@ export default function Register() {
     email: "",
     password: ""
   })
+
+  const router = useRouter();
 
   const handleChange = (e) => {
     setFormData({
@@ -25,6 +28,7 @@ export default function Register() {
 
       if (response.status === 201) {
         alert("User registered successfully");
+        router.push("/login");
       } else {
         alert(response.data.error || "Registration failed");
       }
@@ -88,3 +92,4 @@ export default function Register() {
 //   "email" : "maya123@gmail.com",
 //   "password" : "maya123"
 // }
+
